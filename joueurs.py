@@ -1,6 +1,6 @@
 from bson import ObjectId
 from flask import Blueprint, request, jsonify, Flask
-from flask_cors import CORS
+
 
 # Créer un blueprint pour les joueurs
 joueurs_blueprint = Blueprint('joueurs', __name__)
@@ -89,9 +89,3 @@ def supprimer_joueur(id):
 
 
 
-
-'''
-    if not all(key in data for key in ['nom', 'prenom', 'categorie', 'sexe', 'point']):
-        mongo_client.close()
-        return jsonify({"succès": False, "message": "Données manquantes"}), 400
-'''
