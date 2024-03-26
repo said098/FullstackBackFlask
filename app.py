@@ -4,6 +4,7 @@ from flask import Flask, jsonify, request
 from joueurs import joueurs_blueprint
 from tournois import tournois_blueprint;
 from matchs  import matchs_blueprint;
+from equipes import equipes_blueprint
 
 app = Flask(__name__)
 
@@ -12,7 +13,7 @@ app = Flask(__name__)
 app.register_blueprint(joueurs_blueprint, url_prefix='/joueurs')
 app.register_blueprint(tournois_blueprint, url_prefix='/tournois')
 app.register_blueprint(matchs_blueprint, url_prefix='/matchs')
-
+app.register_blueprint(equipes_blueprint, url_prefix='/equipes')
 
 
 
