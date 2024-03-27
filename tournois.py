@@ -27,7 +27,7 @@ def add_tournoi():
         return jsonify({"succès": False, "message": "Erreur lors de l'insertion", "erreur": str(e)}), 500
 
 
-@tournois_blueprint.route('/', methods=['GET'])
+@tournois_blueprint.route('/liste_tournois', methods=['GET'])
 
 def get_tournois():
     mongo_client = Mongo2Client(db_name='pingpong')
@@ -43,8 +43,7 @@ def get_tournois():
         return jsonify({"succès": False, "message": "Erreur lors de la récupération des tournois", "erreur": str(e)}), 500
 
 
-#@tournois_blueprint.route('/uptade_tournois/<id>',methode=["PUT"])
-#def update_tournois(id):
+
 
 
 
