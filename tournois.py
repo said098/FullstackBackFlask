@@ -15,7 +15,7 @@ def add_tournoi():
     data = request.get_json()
 
     if not all(key in data for key in ['format', 'niveau', 'date', 'duree', 'lieu']):
-        mongo_client.close();
+        mongo_client.close()
         return jsonify({"succès": False, "message": "Données manquantes ou incorrectes"}), 400
 
     try:
