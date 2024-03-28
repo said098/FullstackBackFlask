@@ -5,6 +5,7 @@ from flask import Blueprint, request, jsonify, Flask
 
 lanceur_blueprint = Blueprint('lanceur', __name__)
 
+
 @lanceur_blueprint.route('/', methods=['POST'])
 def lancer_match():
     mongo_client = Mongo2Client(db_name='pingpong')
@@ -60,6 +61,7 @@ def get_table_disponible():
 def choisir_equipes(equipes_liste):
 
     equipe_1 = random.choice(equipes_liste)
+
     equipe_2 = random.choice(equipes_liste)
     return equipe_1, equipe_2
 

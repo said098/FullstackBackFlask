@@ -4,15 +4,18 @@ from mongo_client import Mongo2Client  # Assurez-vous que cela correspond à vot
 
 equipement_blueprint = Blueprint('equipement', __name__)
 
-@equipement_blueprint.route('/liste_equipements', methods=['GET'])
-def get_all_equipements():
+@equipement_blueprint.route('/affiche', methods=['GET'])
+def get_equipements():
+
     mongo_client = Mongo2Client(db_name='pingpong')
-    equipements_cursor = mongo_client.db['equipements'].find()  
-    equipements_liste = list(equipements_cursor)  
-    for equipement in equipements_liste:
-        equipement['_id'] = str(equipement['_id'])  
+    equipement = mongo_client.db['equipements'].find_one()
     mongo_client.close()
-    return jsonify(equipements_liste)
+    if equipement is None:
+            return jsonify({"error": "No equipment found"}), 404
+    equipement["_id"] = str(equipement["_id"])
+
+    return jsonify(equipement)
+ 
 
 @equipement_blueprint.route('/ajouter_equipement', methods=['POST'])
 def ajouter_equipement():
@@ -27,21 +30,24 @@ def ajouter_equipement():
         mongo_client.close()
         return jsonify({"succès": False, "message": "Erreur lors de l'ajout de l'équipement"}), 500
 
-@equipement_blueprint.route('/modifier_equipement/<id>', methods=['PUT'])
-def modifier_equipement(id):
+@equipement_blueprint.route('/modifier_equipement', methods=['PUT'])
+def modifier_equipement():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
     if not data:
         mongo_client.close()
         return jsonify({"succès": False, "message": "Aucune donnée fournie"}), 400
 
-    resultat = mongo_client.db['equipements'].update_one({'_id': ObjectId(id)}, {'$set': data})
+    # Modifier le seul équipement sans spécifier l'ID
+    resultat = mongo_client.db['equipements'].update_one({}, {'$set': data})
+
     if resultat.modified_count > 0:
         mongo_client.close()
         return jsonify({"succès": True, "message": "L'équipement a été modifié"}), 200
     else:
         mongo_client.close()
         return jsonify({"succès": False, "message": "Aucune modification effectuée"}), 404
+
 
 @equipement_blueprint.route('/supprimer_equipement/<id>', methods=['DELETE'])
 def supprimer_equipement(id):
