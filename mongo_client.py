@@ -3,7 +3,7 @@ from pymongo.errors import ConnectionFailure
 
 
 class Mongo2Client:
-     def __init__(self, host='localhost', port=27017, db_name='iut', username='user_name', password=None):
+     def __init__(self, host='localhost', port=27017, db_name='pingpong', username='user_name', password=None):
         try:
             if username and password:
                 uri = f"mongodb://{username}:{password}@{host}:{port}/{db_name}"

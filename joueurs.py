@@ -12,6 +12,8 @@ joueurs_blueprint = Blueprint('joueurs', __name__)
 from mongo_client import Mongo2Client
 
 
+
+
 @joueurs_blueprint.route('/liste_joueurs', methods=['GET'])
 def get_all():
     mongo_client = Mongo2Client(db_name='pingpong')
@@ -116,7 +118,7 @@ def add_joueurs_fichier():
                 'nom': row['Nom'],
                 'sexe': row['Sexe'],
                 'categorie': categorie,
-                'point': points
+                'point': 0
             }
             joueurs.append(joueur)
 
