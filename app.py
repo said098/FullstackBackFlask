@@ -2,7 +2,7 @@ from flask import Flask, jsonify, request
 from flask_cors import CORS
 
 
-from joueurs import joueurs_blueprint
+from joueurs import joueurs_blueprint;
 from tournois import tournois_blueprint;
 from matchs  import matchs_blueprint;
 from equipes import equipes_blueprint;
