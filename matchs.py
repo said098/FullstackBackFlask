@@ -20,15 +20,28 @@ def get_all_matchs():
 def add_match():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
-    print(data)
-
-    resultat = mongo_client.db['matchs'].insert_one(data)
-    if resultat.inserted_id:
-        mongo_client.close()
-        return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
+    
+    equipe1_id = data.get('equipe1')
+    equipe2_id = data.get('equipe2')
+    
+    equipe1 = mongo_client.db['equipe'].find_one({'_id': ObjectId(equipe1_id)})
+    equipe2 = mongo_client.db['equipe'].find_one({'_id': ObjectId(equipe2_id)})
+    
+    if equipe1 and equipe2:
+        data['equipe1'] = equipe1.get('nom')
+        data['equipe2'] = equipe2.get('nom')
+        
+        resultat = mongo_client.db['matchs'].insert_one(data)
+        if resultat.inserted_id:
+            mongo_client.close()
+            return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
+        else:
+            mongo_client.close()
+            return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
+        return jsonify({"succès": False, "message": "Équipe introuvable"}), 404
+
 
 @matchs_blueprint.route('/update_match/<id>', methods=['PUT'])
 def update_match(id):
