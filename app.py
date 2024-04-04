@@ -6,7 +6,6 @@ from joueurs import joueurs_blueprint;
 from tournois import tournois_blueprint;
 from matchs  import matchs_blueprint;
 from equipes import equipes_blueprint;
-from lanceur import lanceur_blueprint
 from equipement import equipement_blueprint
 
 
@@ -18,7 +17,6 @@ app.register_blueprint(joueurs_blueprint, url_prefix='/joueurs')
 app.register_blueprint(tournois_blueprint, url_prefix='/tournois')
 app.register_blueprint(matchs_blueprint, url_prefix='/matchs')
 app.register_blueprint(equipes_blueprint, url_prefix='/equipes')
-app.register_blueprint(lanceur_blueprint, url_prefix='/lanceur')
 app.register_blueprint(equipement_blueprint, url_prefix='/equipement')
 
 

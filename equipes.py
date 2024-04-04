@@ -14,7 +14,7 @@ def serialize_doc(doc):
     elif isinstance(doc, ObjectId):
         return str(doc)
     return doc
-@equipes_blueprint.route('/liste_equipes', methods=['GET'])
+@equipes_blueprint.route('/', methods=['GET'])
 def get_all_equipes():
     mongo_client = Mongo2Client(db_name='pingpong')
     equipes_cursor = mongo_client.db['equipe'].find()
@@ -30,7 +30,7 @@ def get_all_equipes():
 
 
 # Ajouter une nouvelle équipe
-@equipes_blueprint.route('/add_equipe', methods=['POST'])
+@equipes_blueprint.route('/', methods=['POST'])
 def add_equipe():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -58,7 +58,7 @@ def add_equipe():
         return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
 
 # Mettre à jour une équipe
-@equipes_blueprint.route('/update_equipe/<id>', methods=['PUT'])
+@equipes_blueprint.route('/<id>', methods=['PUT'])
 def update_equipe(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -75,7 +75,7 @@ def update_equipe(id):
         return jsonify({"succès": False, "message": "Aucune mise à jour effectuée ou équipe non trouvée"}), 404
 
 # Supprimer une équipe
-@equipes_blueprint.route('/delete_equipe/<id>', methods=['DELETE'])
+@equipes_blueprint.route('/<id>', methods=['DELETE'])
 def delete_equipe(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     resultat = mongo_client.db['equipe'].delete_one({'_id': ObjectId(id)})
@@ -85,4 +85,3 @@ def delete_equipe(id):
     else:
         mongo_client.close()
         return jsonify({"succès": False, "message": "Aucune équipe trouvée avec cet ID"}), 404
-

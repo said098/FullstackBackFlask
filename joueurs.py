@@ -14,7 +14,7 @@ from mongo_client import Mongo2Client
 
 
 
-@joueurs_blueprint.route('/liste_joueurs', methods=['GET'])
+@joueurs_blueprint.route('/', methods=['GET'])
 def get_all():
     mongo_client = Mongo2Client(db_name='pingpong')
     joueurs_cursor = mongo_client.db['joueur'].find()  # Cela retourne un curseur
@@ -26,7 +26,7 @@ def get_all():
 
 
 
-@joueurs_blueprint.route('/add_joueur', methods=['POST'])
+@joueurs_blueprint.route('/', methods=['POST'])
 def add_joueur():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -42,7 +42,7 @@ def add_joueur():
         return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
 
 
-@joueurs_blueprint.route('/update_joueur/<id>', methods=['PUT'])
+@joueurs_blueprint.route('/<id>', methods=['PUT'])
 def update_joueur(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -71,7 +71,7 @@ def update_joueur(id):
 
 
 
-@joueurs_blueprint.route('/supprimer_joueur/<id>', methods=['DELETE'])
+@joueurs_blueprint.route('/<id>', methods=['DELETE'])
 def supprimer_joueur(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     try:

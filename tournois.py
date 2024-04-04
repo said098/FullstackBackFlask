@@ -9,7 +9,7 @@ from mongo_client import Mongo2Client
 tournois_blueprint = Blueprint('tournois', __name__)
 
 
-@tournois_blueprint.route('/add_tournoi', methods=['POST'])
+@tournois_blueprint.route('/', methods=['POST'])
 def add_tournoi():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -32,7 +32,7 @@ def add_tournoi():
 
 
 
-@tournois_blueprint.route('/liste_tournois', methods=['GET'])
+@tournois_blueprint.route('/', methods=['GET'])
 def get_tournois():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -54,7 +54,7 @@ def get_tournois():
 
 
 
-@tournois_blueprint.route('/delete_tournoi/<id>', methods=['DELETE'])
+@tournois_blueprint.route('/<id>', methods=['DELETE'])
 def delete_tournoi(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -93,7 +93,7 @@ def get_equipes_gagnants():
 
 
 
-@tournois_blueprint.route('/premier_tournoi_matchs', methods=['GET'])
+@tournois_blueprint.route('/matchs_dans_tounoi', methods=['GET'])
 def get_matchs_premier_tournoi():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -122,11 +122,9 @@ def get_matchs_premier_tournoi():
 def avancer_ronde():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
-        # Trouver le premier tournoi dans la collection
         tournoi = mongo_client.db['tournoi'].find_one()
         if not tournoi:
             return jsonify({"succès": False, "message": "Aucun tournoi trouvé"}), 404
-
 
         matchs_ids = [ObjectId(id) for id in tournoi['match']]  # Convertit les ID de string à ObjectId
 
@@ -142,10 +140,24 @@ def avancer_ronde():
             elif score2 > score1:
                 equipes_gagnantes.append(match['equipe2'])
 
+        # Vérification pour un nombre pair d'équipes gagnantes
+
+        print("equipe gagnge ", equipes_gagnantes[0])
+        print("equipe gaga longeur", len(equipes_gagnantes))
+
+        if len(equipes_gagnantes) == 1:
+            equipe_gagnante = mongo_client.db['equipe'].find_one({'nom': equipes_gagnantes[0]})
+            print("equipe gaga", equipe_gagnante)
+            print("equipe 1 ", match['equipe1'])
+            print("equip2", match['equipe2'])
+            if equipe_gagnante:
+                equipe_gagnante['_id'] = str(equipe_gagnante['_id'])  # Convertit ObjectId en string
+                for joueur in equipe_gagnante.get('joueurs', []):
+                    joueur['_id'] = str(joueur['_id'])
+                return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante}), 200
+
         if len(equipes_gagnantes) % 2 != 0:
             return jsonify({"succès": False, "message": "Nombre impair d'équipes gagnantes"}), 400
-
-
 
         nouveaux_matchs_ids = []
         for i in range(0, len(equipes_gagnantes), 2):
@@ -159,10 +171,9 @@ def avancer_ronde():
                 "date": date_actuelle,  # Ajout de la date
                 "heure": heure_actuelle
             }
-            print("nouveau_match",nouveaux_matchs_ids)
+            print("nouveau_match", nouveaux_matchs_ids)
             resultat = mongo_client.db['matchs'].insert_one(nouveau_match)
             nouveaux_matchs_ids.append(str(resultat.inserted_id))
-
 
         mongo_client.db['tournoi'].update_one(
             {'_id': tournoi['_id']},
@@ -174,16 +185,3 @@ def avancer_ronde():
     except Exception as e:
         return jsonify(
             {"succès": False, "message": "Erreur lors de l'avancement à la ronde suivante", "erreur": str(e)}), 500
-
-
-
-''' if len(equipes_gagnantes) == 1:
-            equipe_gagnante = mongo_client.db['matchs'].find_one({'_id': ObjectId(equipes_gagnantes[0])})
-            print("equipe gaga", equipes_gagnantes)
-            print("equipe 1 ",match['equipe1'])
-            print("equip2",match['equipe2'])
-            if equipe_gagnante:
-                return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante}), 200
-            else:
-                return jsonify({"succès": False, "message": "Équipe gagnante non trouvée."}), 404
-'''
