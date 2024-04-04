@@ -20,9 +20,6 @@ app.register_blueprint(equipes_blueprint, url_prefix='/equipes')
 app.register_blueprint(equipement_blueprint, url_prefix='/equipement')
 
 
-@app.route('/')
-def hello_world():  # put application's code here
-    return 'Hello World!'
 
 if __name__ == '__main__':
     app.run(debug=True)

@@ -1,6 +1,6 @@
 from bson import ObjectId
 from flask import Blueprint, request, jsonify
-from mongo_client import Mongo2Client  # Assurez-vous que cela correspond à votre configuration
+from mongo_client import Mongo2Client
 
 equipement_blueprint = Blueprint('equipement', __name__)
 
@@ -50,7 +50,7 @@ def modifier_equipement():
         return '', 404
 
 
-@equipement_blueprint.route('/<id>', methods=['DELETE'])
+@equipement_blueprint.route('/<string:id>', methods=['DELETE'])
 def supprimer_equipement(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     try:

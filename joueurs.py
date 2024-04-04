@@ -8,7 +8,6 @@ from flask import Blueprint, request, jsonify, Flask
 # Créer un blueprint pour les joueurs
 joueurs_blueprint = Blueprint('joueurs', __name__)
 
-
 from mongo_client import Mongo2Client
 
 
@@ -17,7 +16,7 @@ from mongo_client import Mongo2Client
 @joueurs_blueprint.route('/', methods=['GET'])
 def get_all():
     mongo_client = Mongo2Client(db_name='pingpong')
-    joueurs_cursor = mongo_client.db['joueur'].find()  # Cela retourne un curseur
+    joueurs_cursor = mongo_client.db['joueur'].find()
     joueurs_liste = list(joueurs_cursor)  # Convertit le curseur en liste
     for joueur in joueurs_liste:
         joueur['_id'] = str(joueur['_id'])  # Convertit ObjectId en str
@@ -42,7 +41,7 @@ def add_joueur():
         return '', 500
 
 
-@joueurs_blueprint.route('/<id>', methods=['PUT'])
+@joueurs_blueprint.route('/<string:id>', methods=['PUT'])
 def update_joueur(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -71,7 +70,7 @@ def update_joueur(id):
 
 
 
-@joueurs_blueprint.route('/<id>', methods=['DELETE'])
+@joueurs_blueprint.route('/<string:id>', methods=['DELETE'])
 def supprimer_joueur(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -89,9 +88,8 @@ def supprimer_joueur(id):
 
 
 
-@joueurs_blueprint.route('/add_fichier', methods=['PUT'])
+@joueurs_blueprint.route('/add_fichier', methods=['POST']) # j'ai ajoute la route /tournois/add_fichier car j'ai deux post
 def add_joueurs_fichier():
-    # Obtenir l'instance du client MongoDB
     print("Fichier reçu:", "fichier" in request.files)
     mongo_client = Mongo2Client(db_name='pingpong')
     fichier = request.files['fichier']
@@ -99,20 +97,17 @@ def add_joueurs_fichier():
     if not fichier:
         mongo_client.close()
         return '', 400
+
     try:
         if not fichier.filename.endswith('.csv'):
             mongo_client.close()
-            return  '',400
-
+            return '', 400
 
         fichier.seek(0)
         joueurs = []
         for row in csv.DictReader(io.StringIO(fichier.read().decode('utf-8'))):
             categorie = [{'age': row['Age']}, {'niveau': row['Niveau']}]
-            try:
-                points = int(row['Points'])
-            except ValueError:
-                points = 0
+
             joueur = {
                 'prenom': row['Prénom'],
                 'nom': row['Nom'],
@@ -124,8 +119,7 @@ def add_joueurs_fichier():
 
     except Exception as e:
         mongo_client.close()
-        return '',400
-
+        return '', 400
 
     try:
         if joueurs:

@@ -4,13 +4,13 @@ from flask import Blueprint, request, jsonify
 # Créer un blueprint pour les matchs
 matchs_blueprint = Blueprint('matchs', __name__)
 
-from mongo_client import Mongo2Client  # Assurez-vous que cela correspond à votre configuration
+from mongo_client import Mongo2Client
 
 
 @matchs_blueprint.route('/', methods=['GET'])
 def get_all_matchs():
     mongo_client = Mongo2Client(db_name='pingpong')
-    matchs_cursor = mongo_client.db['matchs'].find()  # Cela retourne un curseur
+    matchs_cursor = mongo_client.db['matchs'].find()
     matchs_liste = list(matchs_cursor)  # Convertit le curseur en liste
     for match in matchs_liste:
         match['_id'] = str(match['_id'])  # Convertit ObjectId en str
@@ -44,7 +44,7 @@ def add_match():
         return '', 404
 
 
-@matchs_blueprint.route('/<id>', methods=['PUT'])
+@matchs_blueprint.route('/<string:id>', methods=['PUT'])
 def update_match(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -67,7 +67,7 @@ def update_match(id):
         return '', 400
 
 
-@matchs_blueprint.route('/<id>', methods=['DELETE'])
+@matchs_blueprint.route('/<string:id>', methods=['DELETE'])
 def supprimer_match(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     try:

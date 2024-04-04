@@ -58,7 +58,7 @@ def add_equipe():
         return  '', 500
 
 # Mettre à jour une équipe
-@equipes_blueprint.route('/<id>', methods=['PUT'])
+@equipes_blueprint.route('/<string:id>', methods=['PUT'])
 def update_equipe(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
@@ -75,7 +75,7 @@ def update_equipe(id):
         return  '', 404
 
 # Supprimer une équipe
-@equipes_blueprint.route('/<id>', methods=['DELETE'])
+@equipes_blueprint.route('/<string:id>', methods=['DELETE'])
 def delete_equipe(id):
     mongo_client = Mongo2Client(db_name='pingpong')
     resultat = mongo_client.db['equipe'].delete_one({'_id': ObjectId(id)})

@@ -54,23 +54,28 @@ def get_tournois():
 
 
 
-@tournois_blueprint.route('/<id>', methods=['DELETE'])
-def delete_tournoi(id):
+@tournois_blueprint.route('/', methods=['DELETE'])
+def delete_tournoi():
     mongo_client = Mongo2Client(db_name='pingpong')
-    try:
-        oid = ObjectId(id)
-        resultat = mongo_client.db['tournoi'].delete_one({'_id': oid})
-        if resultat.deleted_count > 0:
-            mongo_client.close()
-            return '',200
-        else:
-            mongo_client.close()
-            return 404
-    except Exception as e:
-        mongo_client.close()
-        return '', 500
 
-@tournois_blueprint.route('/equipes_gagnants', methods=['GET'])
+    try:
+        premier_tournoi = mongo_client.db['tournoi'].find_one({}, sort=[('_id', 1)])
+
+        if premier_tournoi:
+            resultat = mongo_client.db['tournoi'].delete_one({'_id': premier_tournoi['_id']})
+            if resultat.deleted_count > 0:
+                return '', 200
+            else:
+                return '', 404
+        else:
+            return '', 404
+    except Exception as e:
+        print(f"Erreur lors de la suppression du premier tournoi: {e}")
+        return '', 500
+    finally:
+        mongo_client.close()
+
+@tournois_blueprint.route('/equipes_gagnants', methods=['GET']) # j'ai ajouté le route equipes_gagnants car j'ai deux Méthodes get
 def get_equipes_gagnants():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -94,7 +99,7 @@ def get_equipes_gagnants():
 
 
 
-@tournois_blueprint.route('/matchs_dans_tounoi', methods=['GET'])
+@tournois_blueprint.route('/matchs_dans_tounoi', methods=['GET']) # j'ai ajouté le route car j'ai deux Méthodes get
 def get_matchs_premier_tournoi():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -118,7 +123,7 @@ def get_matchs_premier_tournoi():
         return '', 500
 
 
-@tournois_blueprint.route('/avancer_ronde', methods=['POST'])
+@tournois_blueprint.route('/avancer_ronde', methods=['POST']) # j'ai ajouté le route car j'ai deux Méthodes Post
 def avancer_ronde():
     mongo_client = Mongo2Client(db_name='pingpong')
     try:
@@ -177,7 +182,7 @@ def avancer_ronde():
 
         mongo_client.db['tournoi'].update_one(
             {'_id': tournoi['_id']},
-            {'$set': {'match': nouveaux_matchs_ids}}  # Remplacez ou ajoutez les nouveaux matchs selon votre logique
+            {'$set': {'match': nouveaux_matchs_ids}}
         )
 
         return jsonify({"succès": True, "message": "Ronde avancée avec succès et nouveaux matchs créés.",
