@@ -46,7 +46,7 @@ def add_equipe():
                 return jsonify({"succès": False, "message": f"Joueur avec l'ID {joueur_id} non trouvé"}), 404
         except:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Erreur lors de la conversion de l'ID du joueur"}), 400
+            return '',400
 
     print(data)
     resultat = mongo_client.db['equipe'].insert_one(data)
@@ -55,7 +55,7 @@ def add_equipe():
         return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
+        return  '', 500
 
 # Mettre à jour une équipe
 @equipes_blueprint.route('/<id>', methods=['PUT'])
@@ -69,10 +69,10 @@ def update_equipe(id):
     resultat = mongo_client.db['equipe'].update_one({'_id': ObjectId(id)}, {'$set': mise_a_jour})
     if resultat.modified_count > 0:
         mongo_client.close()
-        return jsonify({"succès": True, "message": "L'équipe a été mise à jour"}), 200
+        return  '', 200
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune mise à jour effectuée ou équipe non trouvée"}), 404
+        return  '', 404
 
 # Supprimer une équipe
 @equipes_blueprint.route('/<id>', methods=['DELETE'])
@@ -81,7 +81,7 @@ def delete_equipe(id):
     resultat = mongo_client.db['equipe'].delete_one({'_id': ObjectId(id)})
     if resultat.deleted_count > 0:
         mongo_client.close()
-        return jsonify({"succès": True, "message": "L'équipe a été supprimée"}), 200
+        return '', 200
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune équipe trouvée avec cet ID"}), 404
+        return '', 404

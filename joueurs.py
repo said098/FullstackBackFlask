@@ -39,7 +39,7 @@ def add_joueur():
         return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
+        return '', 500
 
 
 @joueurs_blueprint.route('/<id>', methods=['PUT'])
@@ -49,7 +49,7 @@ def update_joueur(id):
     print(data)
     if not data:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune donnée fournie"}), 400
+        return '',400
 
     mise_a_jour = {}
     for champ in ['nom', 'prenom', 'categorie', 'sexe', 'point']:
@@ -60,13 +60,13 @@ def update_joueur(id):
         resultat = mongo_client.db['joueur'].update_one({'_id': ObjectId(id)}, {'$set': mise_a_jour})
         if resultat.modified_count > 0:
             mongo_client.close()
-            return jsonify({"succès": True, "message": "Le joueur a été mis à jour"}), 200
+            return '', 200
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucune mise à jour effectuée"}), 404
+            return '', 404
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune donnée valide pour la mise à jour"}), 400
+        return '', 400
 
 
 
@@ -79,13 +79,13 @@ def supprimer_joueur(id):
         resultat = mongo_client.db['joueur'].delete_one({'_id': ObjectId(id)})
         if resultat.deleted_count > 0:
             mongo_client.close()
-            return jsonify({"succès": True, "message": "Le joueur a été supprimé"}), 200
+            return '', 200
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucun joueur trouvé avec cet ID"}), 404
+            return  '',404
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la suppression", "erreur": str(e)}), 500
+        return '', 500
 
 
 
@@ -98,11 +98,11 @@ def add_joueurs_fichier():
 
     if not fichier:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucun fichier fourni"}), 400
+        return '', 400
     try:
         if not fichier.filename.endswith('.csv'):
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Le fichier n'est pas un CSV"}), 400
+            return  '',400
 
 
         fichier.seek(0)
@@ -124,7 +124,7 @@ def add_joueurs_fichier():
 
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la lecture du fichier", "erreur": str(e)}), 400
+        return '',400
 
 
     try:
@@ -135,7 +135,7 @@ def add_joueurs_fichier():
             return jsonify({"succès": True, "ids_insertion": ids_insertion}), 201
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Le fichier CSV est vide"}), 400
+            return '', 400
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de l'insertion des joueurs", "erreur": str(e)}), 500
+        return '', 500

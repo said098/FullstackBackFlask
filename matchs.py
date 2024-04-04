@@ -38,10 +38,10 @@ def add_match():
             return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Erreur lors de l'insertion"}), 500
+            return '', 500
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Équipe introuvable"}), 404
+        return '', 404
 
 
 @matchs_blueprint.route('/<id>', methods=['PUT'])
@@ -51,20 +51,20 @@ def update_match(id):
     print(data)
     if not data:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune donnée fournie"}), 400
+        return 400
     mise_a_jour = {key: value for key, value in data.items() if
                    key in ['equipe1', 'equipe2', 'date', 'heure', 'score1', 'score2']}
     if mise_a_jour:
         resultat = mongo_client.db['matchs'].update_one({'_id': ObjectId(id)}, {'$set': mise_a_jour})
         if resultat.modified_count > 0:
             mongo_client.close()
-            return jsonify({"succès": True, "message": "Le match a été mis à jour"}), 200
+            return '', 200
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucune mise à jour effectuée"}), 404
+            return '', 404
     else:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Aucune donnée valide pour la mise à jour"}), 400
+        return '', 400
 
 
 @matchs_blueprint.route('/<id>', methods=['DELETE'])
@@ -74,10 +74,10 @@ def supprimer_match(id):
         resultat = mongo_client.db['matchs'].delete_one({'_id': ObjectId(id)})
         if resultat.deleted_count > 0:
             mongo_client.close()
-            return jsonify({"succès": True, "message": "Le match a été supprimé"}), 200
+            return '', 200
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucun match trouvé avec cet ID"}), 404
+            return '', 404
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la suppression", "erreur": str(e)}), 500
+        return '', 500

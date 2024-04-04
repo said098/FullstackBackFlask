@@ -28,7 +28,7 @@ def add_tournoi():
         return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de l'insertion", "erreur": str(e)}), 500
+        return '', 500
 
 
 
@@ -48,7 +48,7 @@ def get_tournois():
         return jsonify(tournois_liste)
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la récupération des tournois", "erreur": str(e)}), 500
+        return '', 500
 
 
 
@@ -62,13 +62,13 @@ def delete_tournoi(id):
         resultat = mongo_client.db['tournoi'].delete_one({'_id': oid})
         if resultat.deleted_count > 0:
             mongo_client.close()
-            return jsonify({"succès": True, "message": "Le tournoi a été supprimé"}), 200
+            return '',200
         else:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucun tournoi trouvé avec cet ID"}), 404
+            return 404
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la suppression", "erreur": str(e)}), 500
+        return '', 500
 
 @tournois_blueprint.route('/equipes_gagnants', methods=['GET'])
 def get_equipes_gagnants():
@@ -84,6 +84,7 @@ def get_equipes_gagnants():
                 equipes_gagnantes.append({"_id": str(match["_id"]), "equipeGagnante": match["equipe1"]})
             elif score2 > score1:
                 equipes_gagnantes.append({"_id": str(match["_id"]), "equipeGagnante": match["equipe2"]})
+        print("les qui ont gagner ",equipes_gagnantes)
         return jsonify(equipes_gagnantes), 200
     finally:
         mongo_client.close()
@@ -101,7 +102,7 @@ def get_matchs_premier_tournoi():
 
         if not tournoi:
             mongo_client.close()
-            return jsonify({"succès": False, "message": "Aucun tournoi trouvé"}), 404
+            return '', 404
 
         matchs_ids = tournoi.get('match', [])
         matchs_ids = [ObjectId(id) for id in matchs_ids]
@@ -114,8 +115,7 @@ def get_matchs_premier_tournoi():
         return jsonify(matchs)
     except Exception as e:
         mongo_client.close()
-        return jsonify({"succès": False, "message": "Erreur lors de la récupération des matchs du premier tournoi",
-                        "erreur": str(e)}), 500
+        return '', 500
 
 
 @tournois_blueprint.route('/avancer_ronde', methods=['POST'])
@@ -124,7 +124,7 @@ def avancer_ronde():
     try:
         tournoi = mongo_client.db['tournoi'].find_one()
         if not tournoi:
-            return jsonify({"succès": False, "message": "Aucun tournoi trouvé"}), 404
+            return '',404
 
         matchs_ids = [ObjectId(id) for id in tournoi['match']]  # Convertit les ID de string à ObjectId
 
@@ -157,7 +157,7 @@ def avancer_ronde():
                 return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante}), 200
 
         if len(equipes_gagnantes) % 2 != 0:
-            return jsonify({"succès": False, "message": "Nombre impair d'équipes gagnantes"}), 400
+            return '', 400
 
         nouveaux_matchs_ids = []
         for i in range(0, len(equipes_gagnantes), 2):
@@ -183,5 +183,4 @@ def avancer_ronde():
         return jsonify({"succès": True, "message": "Ronde avancée avec succès et nouveaux matchs créés.",
                         "nouveaux_matchs_ids": nouveaux_matchs_ids})
     except Exception as e:
-        return jsonify(
-            {"succès": False, "message": "Erreur lors de l'avancement à la ronde suivante", "erreur": str(e)}), 500
+        return '', 500

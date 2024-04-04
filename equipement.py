@@ -44,10 +44,10 @@ def modifier_equipement():
 
     if resultat.modified_count > 0:
         mongo_client.close()
-        return  200
+        return '', 200
     else:
         mongo_client.close()
-        return  404
+        return '', 404
 
 
 @equipement_blueprint.route('/<id>', methods=['DELETE'])
@@ -57,10 +57,10 @@ def supprimer_equipement(id):
         resultat = mongo_client.db['equipements'].delete_one({'_id': ObjectId(id)})
         if resultat.deleted_count > 0:
             mongo_client.close()
-            return  200
+            return '', 200
         else:
             mongo_client.close()
-            return  404
+            return '', 404
     except Exception as e:
         mongo_client.close()
-        return  500
+        return '', 500
