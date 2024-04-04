@@ -20,7 +20,6 @@ def get_all_matchs():
 def add_match():
     mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
-    
     equipe1_id = data.get('equipe1')
     equipe2_id = data.get('equipe2')
     
@@ -51,8 +50,7 @@ def update_match(id):
     if not data:
         mongo_client.close()
         return jsonify({"succès": False, "message": "Aucune donnée fournie"}), 400
-
-    mise_a_jour = {key: value for key, value in data.items() if key in ['equipes', 'table', 'date', 'heure', 'resultat']}
+    mise_a_jour = {key: value for key, value in data.items() if key in ['equipe1', 'equipe2', 'date', 'heure', 'score1', 'score2']}
     if mise_a_jour:
         resultat = mongo_client.db['matchs'].update_one({'_id': ObjectId(id)}, {'$set': mise_a_jour})
         if resultat.modified_count > 0:
@@ -79,3 +77,4 @@ def supprimer_match(id):
     except Exception as e:
         mongo_client.close()
         return jsonify({"succès": False, "message": "Erreur lors de la suppression", "erreur": str(e)}), 500
+
