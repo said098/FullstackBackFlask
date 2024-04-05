@@ -2,9 +2,8 @@ from flask import Blueprint, request, jsonify
 from bson import ObjectId
 from mongo_client import Mongo2Client
 
-
 equipes_blueprint = Blueprint('equipes', __name__)
-
+mongo_client = Mongo2Client(db_name='pingpong')
 
 def serialize_doc(doc):
     if isinstance(doc, list):
@@ -14,9 +13,9 @@ def serialize_doc(doc):
     elif isinstance(doc, ObjectId):
         return str(doc)
     return doc
+
 @equipes_blueprint.route('/', methods=['GET'])
 def get_all_equipes():
-    mongo_client = Mongo2Client(db_name='pingpong')
     equipes_cursor = mongo_client.db['equipe'].find()
     equipes_liste = list(equipes_cursor)
 
@@ -28,11 +27,8 @@ def get_all_equipes():
     equipes_liste = serialize_doc(equipes_liste)
     return jsonify(equipes_liste)
 
-
-# Ajouter une nouvelle équipe
 @equipes_blueprint.route('/', methods=['POST'])
 def add_equipe():
-    mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
 
     for i, joueur in enumerate(data['joueurs']):
@@ -42,25 +38,18 @@ def add_equipe():
             if document_joueur:
                 data['joueurs'][i] = document_joueur
             else:
-                mongo_client.close()
-                return jsonify({"succès": False, "message": f"Joueur avec l'ID {joueur_id} non trouvé"}), 404
+                return jsonify({"succès": False, "message": f"Joueur avec l'ID {joueur_id} non trouvé"})
         except:
-            mongo_client.close()
-            return '',400
+            return jsonify({'error': 'Mauvaise requête'})
 
-    print(data)
     resultat = mongo_client.db['equipe'].insert_one(data)
     if resultat.inserted_id:
-        mongo_client.close()
-        return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
+        return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)})
     else:
-        mongo_client.close()
-        return  '', 500
+        return jsonify({'error': 'Erreur lors de l\'insertion'})
 
-# Mettre à jour une équipe
 @equipes_blueprint.route('/<string:id>', methods=['PUT'])
 def update_equipe(id):
-    mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
     mise_a_jour = {}
     for champ in ['joueurs', 'type']:
@@ -68,20 +57,14 @@ def update_equipe(id):
             mise_a_jour[champ] = data[champ]
     resultat = mongo_client.db['equipe'].update_one({'_id': ObjectId(id)}, {'$set': mise_a_jour})
     if resultat.modified_count > 0:
-        mongo_client.close()
-        return  '', 200
+        return 200
     else:
-        mongo_client.close()
-        return  '', 404
+        return jsonify({'error': 'Equipe non trouvée'})
 
-# Supprimer une équipe
 @equipes_blueprint.route('/<string:id>', methods=['DELETE'])
 def delete_equipe(id):
-    mongo_client = Mongo2Client(db_name='pingpong')
     resultat = mongo_client.db['equipe'].delete_one({'_id': ObjectId(id)})
     if resultat.deleted_count > 0:
-        mongo_client.close()
-        return '', 200
+        return 200
     else:
-        mongo_client.close()
-        return '', 404
+        return jsonify({'error': 'Equipe non trouvée'})

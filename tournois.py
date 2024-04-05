@@ -1,17 +1,14 @@
 from datetime import datetime
 
 from bson import ObjectId
-from flask import Blueprint, request, jsonify, Flask
-from flask_cors import CORS
-
+from flask import Blueprint, request, jsonify
 from mongo_client import Mongo2Client
 
 tournois_blueprint = Blueprint('tournois', __name__)
-
+mongo_client = Mongo2Client(db_name='pingpong')
 
 @tournois_blueprint.route('/', methods=['POST'])
 def add_tournoi():
-    mongo_client = Mongo2Client(db_name='pingpong')
     data = request.get_json()
 
     matchs_cursor = mongo_client.db['matchs'].find()
@@ -19,22 +16,16 @@ def add_tournoi():
 
     data['match'] = matchs_ids
 
-    # Initialise le tournoi avec une ronde actuelle
-    data['ronde_actuelle'] = 1  # Commence à la première ronde
+    data['ronde_actuelle'] = 1  
 
     try:
         resultat = mongo_client.db['tournoi'].insert_one(data)
-        mongo_client.close()
-        return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)}), 201
+        return jsonify({"succès": True, "id_insertion": str(resultat.inserted_id)})
     except Exception as e:
-        mongo_client.close()
-        return '', 500
-
-
+        return jsonify({"error": "Erreur lors de l'insertion du tournoi", "details": str(e)})
 
 @tournois_blueprint.route('/', methods=['GET'])
 def get_tournois():
-    mongo_client = Mongo2Client(db_name='pingpong')
     try:
         tournois_cursor = mongo_client.db['tournoi'].find()
         tournois_liste = list(tournois_cursor)
@@ -44,70 +35,49 @@ def get_tournois():
                 for match in tournoi['match']:
                     if '_id' in match:
                         match['_id'] = str(match['_id'])
-        mongo_client.close()
         return jsonify(tournois_liste)
     except Exception as e:
-        mongo_client.close()
-        return '', 500
-
-
-
-
+        return jsonify({"error": "Erreur lors de la récupération des tournois", "details": str(e)})
 
 @tournois_blueprint.route('/', methods=['DELETE'])
 def delete_tournoi():
-    mongo_client = Mongo2Client(db_name='pingpong')
-
     try:
         premier_tournoi = mongo_client.db['tournoi'].find_one({}, sort=[('_id', 1)])
 
         if premier_tournoi:
             resultat = mongo_client.db['tournoi'].delete_one({'_id': premier_tournoi['_id']})
             if resultat.deleted_count > 0:
-                return '', 200
+                return 200
             else:
-                return '', 404
+                return 404
         else:
-            return '', 404
+            return 404
     except Exception as e:
-        print(f"Erreur lors de la suppression du premier tournoi: {e}")
-        return '', 500
-    finally:
-        mongo_client.close()
+        return jsonify({"error": "Erreur lors de la suppression du premier tournoi", "details": str(e)})
 
-@tournois_blueprint.route('/equipes_gagnants', methods=['GET']) # j'ai ajouté le route equipes_gagnants car j'ai deux Méthodes get
+@tournois_blueprint.route('/equipes_gagnants', methods=['GET'])
 def get_equipes_gagnants():
-    mongo_client = Mongo2Client(db_name='pingpong')
     try:
         matchs = mongo_client.db['matchs'].find()
         equipes_gagnantes = []
         for match in matchs:
-            # Convertissez les scores en entiers avant de les comparer
             score1 = int(match['score1'])
             score2 = int(match['score2'])
             if score1 > score2:
                 equipes_gagnantes.append({"_id": str(match["_id"]), "equipeGagnante": match["equipe1"]})
             elif score2 > score1:
                 equipes_gagnantes.append({"_id": str(match["_id"]), "equipeGagnante": match["equipe2"]})
-        print("les qui ont gagner ",equipes_gagnantes)
-        return jsonify(equipes_gagnantes), 200
-    finally:
-        mongo_client.close()
+        return jsonify(equipes_gagnantes)
+    except Exception as e:
+        return jsonify({"error": "Erreur lors de la récupération des équipes gagnantes", "details": str(e)})
 
-
-
-
-
-
-@tournois_blueprint.route('/matchs_dans_tounoi', methods=['GET']) # j'ai ajouté le route car j'ai deux Méthodes get
+@tournois_blueprint.route('/matchs_dans_tounoi', methods=['GET'])
 def get_matchs_premier_tournoi():
-    mongo_client = Mongo2Client(db_name='pingpong')
     try:
         tournoi = mongo_client.db['tournoi'].find_one()
 
         if not tournoi:
-            mongo_client.close()
-            return '', 404
+            return 404
 
         matchs_ids = tournoi.get('match', [])
         matchs_ids = [ObjectId(id) for id in matchs_ids]
@@ -116,26 +86,20 @@ def get_matchs_premier_tournoi():
         for match in matchs:
             match['_id'] = str(match['_id'])
 
-        mongo_client.close()
         return jsonify(matchs)
     except Exception as e:
-        mongo_client.close()
-        return '', 500
+        return jsonify({"error": "Erreur lors de la récupération des matchs du premier tournoi", "details": str(e)})
 
-
-@tournois_blueprint.route('/avancer_ronde', methods=['POST']) # j'ai ajouté le route car j'ai deux Méthodes Post
+@tournois_blueprint.route('/avancer_ronde', methods=['POST'])
 def avancer_ronde():
-    mongo_client = Mongo2Client(db_name='pingpong')
     try:
         tournoi = mongo_client.db['tournoi'].find_one()
         if not tournoi:
-            return '',404
+            return 404
 
-        matchs_ids = [ObjectId(id) for id in tournoi['match']]  # Convertit les ID de string à ObjectId
+        matchs_ids = [ObjectId(id) for id in tournoi['match']]
 
-        # Récupérer les matchs basés sur les ID
         matchs = mongo_client.db['matchs'].find({'_id': {'$in': matchs_ids}})
-        print("matach", matchs)
         equipes_gagnantes = []
         for match in matchs:
             score1 = int(match['score1'])
@@ -145,24 +109,16 @@ def avancer_ronde():
             elif score2 > score1:
                 equipes_gagnantes.append(match['equipe2'])
 
-        # Vérification pour un nombre pair d'équipes gagnantes
-
-        print("equipe gagnge ", equipes_gagnantes[0])
-        print("equipe gaga longeur", len(equipes_gagnantes))
-
         if len(equipes_gagnantes) == 1:
             equipe_gagnante = mongo_client.db['equipe'].find_one({'nom': equipes_gagnantes[0]})
-            print("equipe gaga", equipe_gagnante)
-            print("equipe 1 ", match['equipe1'])
-            print("equip2", match['equipe2'])
             if equipe_gagnante:
-                equipe_gagnante['_id'] = str(equipe_gagnante['_id'])  # Convertit ObjectId en string
+                equipe_gagnante['_id'] = str(equipe_gagnante['_id'])
                 for joueur in equipe_gagnante.get('joueurs', []):
                     joueur['_id'] = str(joueur['_id'])
-                return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante}), 200
+                return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante})
 
         if len(equipes_gagnantes) % 2 != 0:
-            return '', 400
+            return 400
 
         nouveaux_matchs_ids = []
         for i in range(0, len(equipes_gagnantes), 2):
@@ -171,12 +127,11 @@ def avancer_ronde():
             nouveau_match = {
                 "equipe1": equipes_gagnantes[i],
                 "equipe2": equipes_gagnantes[i + 1],
-                "score1": 0,  # Initialisation des scores à 0
+                "score1": 0,
                 "score2": 0,
-                "date": date_actuelle,  # Ajout de la date
+                "date": date_actuelle,
                 "heure": heure_actuelle
             }
-            print("nouveau_match", nouveaux_matchs_ids)
             resultat = mongo_client.db['matchs'].insert_one(nouveau_match)
             nouveaux_matchs_ids.append(str(resultat.inserted_id))
 
@@ -188,4 +143,4 @@ def avancer_ronde():
         return jsonify({"succès": True, "message": "Ronde avancée avec succès et nouveaux matchs créés.",
                         "nouveaux_matchs_ids": nouveaux_matchs_ids})
     except Exception as e:
-        return '', 500
+        return jsonify({"error": "Erreur lors de l'avancement de la ronde", "details": str(e)})
