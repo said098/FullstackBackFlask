@@ -3,19 +3,29 @@ from pymongo.errors import ConnectionFailure
 
 
 class Mongo2Client:
-     def __init__(self, host='localhost', port=27017, db_name='pingpong', username='user_name', password=None):
-        try:
-            if username and password:
-                uri = f"mongodb://{username}:{password}@{host}:{port}/{db_name}"
-                self.client = MongoClient(uri)
-            else:
-                self.client = MongoClient(host, port)
-            self.db = self.client[db_name]
-        except ConnectionFailure as e:
-            print("Erreur de connexion à la base de données MongoDB:", e)
+    _instance = None
 
-     def close(self):
-         self.client.close()
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+            try:
+                cls._instance._initialize(*args, **kwargs)
+            except ConnectionFailure as e:
+                print("Erreur de connexion à la base de données MongoDB:", e)
+                cls._instance = None
+        return cls._instance
+
+    def _initialize(self, host='localhost', port=27017, db_name='pingpong', username='user_name', password=None):
+        if username and password:
+            uri = f"mongodb://{username}:{password}@{host}:{port}/{db_name}"
+            self.client = MongoClient(uri)
+        else:
+            self.client = MongoClient(host, port)
+        self.db = self.client[db_name]
+
+    def close(self):
+        if hasattr(self, 'client') and self.client is not None:
+            self.client.close()
 
 
 if __name__ == '__main__':
