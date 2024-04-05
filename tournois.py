@@ -145,7 +145,8 @@ def avancer_ronde():
             elif score2 > score1:
                 equipes_gagnantes.append(match['equipe2'])
 
-        # Vérification pour un nombre pair d'équipes gagnantes
+
+        #Vérification pour un nombre pair d'équipes gagnantes
 
         print("equipe gagnge ", equipes_gagnantes[0])
         print("equipe gaga longeur", len(equipes_gagnantes))
@@ -160,7 +161,7 @@ def avancer_ronde():
                 for joueur in equipe_gagnante.get('joueurs', []):
                     joueur['_id'] = str(joueur['_id'])
                 return jsonify({"succès": True, "equipe_gagnante": equipe_gagnante}), 200
-
+        print("longeur")
         if len(equipes_gagnantes) % 2 != 0:
             return '', 400
 
